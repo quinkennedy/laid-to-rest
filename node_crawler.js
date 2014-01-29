@@ -1,6 +1,31 @@
 var Crawler = require("crawler").Crawler;
 var WebSocketClient = require('ws');
 
+
+// require("serialport").list(function (err, ports) {
+//   ports.forEach(function(port) {
+//     console.log(port.comName);
+//     console.log(port.pnpId);
+//     console.log(port.manufacturer);
+//   });
+// });
+
+// var SerialPort = require("serialport").SerialPort
+// var serialPort = new SerialPort("/dev/tty.usbmodemfa131", {
+//   baudrate: 38400;//9600;300;38400;
+// });
+
+// serialPort.on("open", function () {
+//   console.log('open');
+//   serialPort.on('data', function(data) {
+//     console.log('data received: ' + data);
+//   });
+//   serialPort.write("ls\n", function(err, results) {
+//     console.log('err ' + err);
+//     console.log('results ' + results);
+//   });
+// });
+
 /**
  * Called when we receive a message from the Server.
  * @param  {websocket message} data The websocket message from the Server
@@ -30,7 +55,6 @@ var handleMessage = function(json){
     if (json.message || json.admin){
         //do nothing
     } else if (json.config){
-        handleConfigMessage(json);
     } else if (json.route){
     } else if (json.remove){
     } else {
@@ -53,7 +77,7 @@ var setupWSClient = function(){
 }
 
 //set up timer to attempt connection if it doesn't happen
-setupWSClient();
+//setupWSClient();
 
 var c = new Crawler({
 	"maxConnections":100,
@@ -68,12 +92,12 @@ var c = new Crawler({
 		}else if(result != undefined){
 			//console.log(result.statusCode);
 			if (result.statusCode == 200){
-				process.stdout.write(".");
+				//process.stdout.write(".");
 			} else {
-				process.stdout.write(""+result.statusCode);
+				//process.stdout.write(""+result.statusCode);
 				if (result.statusCode == 404){
 					console.log(result.uri);
-					wsClient.send(JSON.stringify({message:{clientName:clientName, name:"R.I.P.", type:"string", value:result.uri}}));
+					//wsClient.send(JSON.stringify({message:{clientName:clientName, name:"R.I.P.", type:"string", value:result.uri}}));
 				}
 			}
 			try{
@@ -82,7 +106,7 @@ var c = new Crawler({
 			        c.queue(a.href);
 			    });
 		    } catch (err){
-		    	console.log("oops");
+		    	//console.log("oops");
 		    }
 		}
 	}
@@ -90,5 +114,5 @@ var c = new Crawler({
 
 // Queue a list of URLs
 // good sources of 404
-//c.queue(["http://allaboutee.com/2011/12/31/arduino-adk-board-blink-an-led-with-your-phone-code-and-explanation/","http://tedxparis.com"]);
+c.queue(["http://allaboutee.com/2011/12/31/arduino-adk-board-blink-an-led-with-your-phone-code-and-explanation/","http://tedxparis.com"]);
 c.queue(["http://parishackers.org/","http://joshfire.com","http://jamendo.com/"]);
