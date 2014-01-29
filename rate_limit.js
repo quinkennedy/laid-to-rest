@@ -66,6 +66,7 @@ var handleMessage = function(json){
 
 var handleMessageMessage = function(json){
     if (json.message.name == "text"){
+	console.log("received:", json.message.value);
         textList.push(json.message.value);
         sendLimited();
     } else if (json.message.name == "available"){
@@ -76,7 +77,9 @@ var handleMessageMessage = function(json){
 
 var sendLimited = function(){
     if (available && textList.length > 0){
+	available = false;
         wsClient.send(JSON.stringify({message:{clientName:clientName,name:"text",type:"string",value:textList[0]}}));
+	console.log("sent:",textList[0]);
         textList.splice(0,1);
     }
 }
