@@ -85,7 +85,7 @@ setupWSClient();
 var c = new Crawler({
 	"maxConnections":30,
 	"skipDuplicates":true,
-	"timeout":20000,
+	"timeout":15000,
 	"retryTimeout":5000,
 
 	// This will be called for each crawled page
