@@ -44,7 +44,7 @@ var receivedMessage = function(data, flags){
     }
 };
 
-var clientName = "404'd";
+var clientName = "limiter";
 
 /**
  * Handle the json data from the Server and forward it to the appropriate function
@@ -52,8 +52,9 @@ var clientName = "404'd";
  * @return {boolean}      True iff the message was a recognized type
  */
 var handleMessage = function(json){
-    if (json.message || json.admin){
-        //do nothing
+    if (json.message){
+        handleMessageMessage(json);
+    } else if (json.admin){
     } else if (json.config){
     } else if (json.route){
     } else if (json.remove){
@@ -63,15 +64,34 @@ var handleMessage = function(json){
     return true;
 };
 
+var handleMessageMessage = function(json){
+    if (json.message.name == "text"){
+        textList.push(json.message.value);
+        sendLimited();
+    } else if (json.message.name == "available"){
+        available = true;
+        sendLimited();
+    }
+};
+
+var sendLimited = function(){
+    if (available && textList.length > 0){
+        wsClient.send(JSON.stringify({message:{clientName:clientName,name:"text",type:"string",value:textList[0]}}));
+        textList.splice(0,1);
+    }
+}
+
 var defaultHost = "localhost";
 var defaultPort = 9000;
+var available = false;
+var textList = [];
 
-var setupWSClient = function(){ 
+var setupWSClient = function(){
     // create the wsclient and register as an admin
     wsClient = new WebSocketClient("ws://"+defaultHost+":"+defaultPort);
     wsClient.on("open", function(conn){
         console.log("connected");
-        var configMsg = { "config": {"name":clientName, "description":"web crawler that publishes dead links", "publish":{"messages":[{"name":"R.I.P.", "type":"string"}]}, "subscribe":{"messages":[]}}};
+        var configMsg = { "config": {"name":clientName, "description":"web crawler that publishes dead links", "publish":{"messages":[{"name":"text", "type":"string"}]}, "subscribe":{"messages":[{"name":"text", "type":"string"},{"name":"available","type":"boolean"}]}}};
         wsClient.send(JSON.stringify(configMsg));
     });
     wsClient.on("message", receivedMessage);
@@ -81,41 +101,3 @@ var setupWSClient = function(){
 
 //set up timer to attempt connection if it doesn't happen
 setupWSClient();
-
-var c = new Crawler({
-	"maxConnections":100,
-	"skipDuplicates":true,
-	"timeout":20000,
-	"retryTimeout":5000,
-
-	// This will be called for each crawled page
-	"callback":function(error,result,$) {
-		if (error != undefined){
-			//hmm
-		}else if(result != undefined){
-			//console.log(result.statusCode);
-			if (result.statusCode == 200){
-				process.stdout.write(".");
-			} else {
-				process.stdout.write(""+result.statusCode);
-				if (result.statusCode == 404){
-					console.log(result.uri);
-					wsClient.send(JSON.stringify({message:{clientName:clientName, name:"R.I.P.", type:"string", value:result.uri}}));
-				}
-			}
-			try{
-				// $ is a jQuery instance scoped to the server-side DOM of the page
-			    $("#content a").each(function(index,a) {
-			        c.queue(a.href);
-			    });
-		    } catch (err){
-		    	console.log("oops");
-		    }
-		}
-	}
-});
-
-// Queue a list of URLs
-// good sources of 404
-c.queue(["http://allaboutee.com/2011/12/31/arduino-adk-board-blink-an-led-with-your-phone-code-and-explanation/","http://tedxparis.com"]);
-c.queue(["http://parishackers.org/","http://joshfire.com","http://jamendo.com/"]);
