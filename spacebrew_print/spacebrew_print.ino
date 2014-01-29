@@ -92,7 +92,7 @@ void onBooleanMessage(char *name, bool value){
 
 void onStringMessage(char *name, char* message){
   printer.print(message);
-  printer.feed(5);
+  printer.feed(2);
   sendReady();
 }
 

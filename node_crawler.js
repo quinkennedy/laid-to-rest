@@ -83,7 +83,7 @@ var setupWSClient = function(){
 setupWSClient();
 
 var c = new Crawler({
-	"maxConnections":100,
+	"maxConnections":30,
 	"skipDuplicates":true,
 	"timeout":20000,
 	"retryTimeout":5000,
