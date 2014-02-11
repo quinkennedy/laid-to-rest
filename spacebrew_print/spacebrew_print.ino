@@ -1,3 +1,9 @@
+/*
+ empty setup function is a hack to get #define working right
+ http://forum.arduino.cc/index.php?PHPSESSID=bselqr44el9dpvp1q1tc7tns93&topic=38052.msg281918#msg281918
+*/
+void setup();
+//#define SERVO
 #include "Adafruit_Thermal.h"
 #include "SoftwareSerial.h"
 #include "Stream.h"
@@ -6,6 +12,13 @@
 #include <Ethernet.h>
 #include <WebSocketClient.h>
 
+#ifdef SERVO
+#include <Servo.h>
+int servo_Pin = 9;
+Servo myServo;
+int cutPos = 60;
+int openPos = 10;
+#endif
 
 /**
  * Declare which pins to communicate to the printer over
@@ -45,6 +58,10 @@ void setup(){
     printer.upsideDownOn();
   }
   setupSpacebrew();
+  #ifdef SERVO
+  myServo.attach(servo_Pin);
+  myServo.write(openPos);
+  #endif
 }
 
 void setupSpacebrew(){
@@ -66,7 +83,7 @@ void setupSpacebrew(){
   
   //connect to the spacebrew server
   Ethernet.begin(mac);
-  sb.connect("172.16.92.50", "Thermal Printer", "A thermal printer that can print various data from spacebrew");
+  sb.connect("10.5.5.2", "Thermal Printer", "A thermal printer that can print various data from spacebrew");
 }
 
 void loop(){
@@ -92,7 +109,15 @@ void onBooleanMessage(char *name, bool value){
 
 void onStringMessage(char *name, char* message){
   printer.print(message);
-  printer.feed(2);
+  #ifdef SERVO
+  printer.feed(5);
+  delay(500);
+  myServo.write(cutPos);
+  delay(500);
+  myServo.write(openPos);
+  #else
+  printer.feed(1);
+  #endif
   sendReady();
 }
 

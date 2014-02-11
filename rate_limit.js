@@ -1,4 +1,3 @@
-var Crawler = require("crawler").Crawler;
 var WebSocketClient = require('ws');
 
 
